@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Todo App with Description</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.container {
+  background: white;
+  width: 420px;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Inputs */
+.input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.input-box input,
+.input-box textarea {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  outline: none;
+}
+
+textarea {
+  resize: none;
+  height: 60px;
+}
+
+.input-box button {
+  padding: 10px;
+  border: none;
+  background: #667eea;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.input-box button:hover {
+  background: #5a67d8;
+}
+
+/* Todo List */
+ul {
+  list-style: none;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+li {
+  background: #f7f7f7;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  transition: 0.3s;
+}
+
+li.completed {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+/* Title & Description */
+.task-title {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.task-desc {
+  font-size: 13px;
+  color: #555;
+  margin-top: 5px;
+}
+
+/* Actions */
+.actions {
+  margin-top: 8px;
+}
+
+.actions button {
+  margin-right: 5px;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.complete-btn {
+  background: #38a169;
+  color: white;
+}
+
+.delete-btn {
+  background: #e53e3e;
+  color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>📝 Todo List</h1>
+
+  <div class="input-box">
+    <input type="text" id="taskTitle" placeholder="Enter task title...">
+    <textarea id="taskDesc" placeholder="Enter task description..."></textarea>
+    <button onclick="addTask()">Add Task</button>
+  </div>
+
+  <ul id="taskList"></ul>
+</div>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+function saveTasks() {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function addTask() {
+  const title = document.getElementById("taskTitle").value.trim();
+  const desc = document.getElementById("taskDesc").value.trim();
+
+  if (title === "") return;
+
+  tasks.push({
+    title,
+    desc,
+    completed: false
+  });
+
+  document.getElementById("taskTitle").value = "";
+  document.getElementById("taskDesc").value = "";
+
+  saveTasks();
+  renderTasks();
+}
+
+function toggleTask(index) {
+  tasks[index].completed = !tasks[index].completed;
+  saveTasks();
+  renderTasks();
+}
+
+function deleteTask(index) {
+  tasks.splice(index, 1);
+  saveTasks();
+  renderTasks();
+}
+
+function renderTasks() {
+  const list = document.getElementById("taskList");
+  list.innerHTML = "";
+
+  tasks.forEach((task, index) => {
+    const li = document.createElement("li");
+
+    if (task.completed) li.classList.add("completed");
+
+    li.innerHTML = `
+      <div class="task-title">${task.title}</div>
+      <div class="task-desc">${task.desc || ""}</div>
+      
+      <div class="actions">
+        <button class="complete-btn" onclick="toggleTask(${index})">✔</button>
+        <button class="delete-btn" onclick="deleteTask(${index})">✖</button>
+      </div>
+    `;
+
+    list.appendChild(li);
+  });
+}
+
+renderTasks();
+</script>
+
+</body>
+</html>
