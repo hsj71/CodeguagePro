@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Analog Clock</title>
+
+<style>
+body {
+  margin: 0;
+  background: #e5e5e5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: Arial;
+}
+
+/* Clock */
+.clock {
+  width: 350px;
+  height: 350px;
+  border: 10px solid #bdbdbd;
+  border-radius: 50%;
+  position: relative;
+  background: #f8f8f8;
+}
+
+/* Center */
+.center {
+  width: 14px;
+  height: 14px;
+  background: gray;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+/* Hands */
+.hand {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  transform-origin: bottom;
+}
+
+.hour {
+  width: 6px;
+  height: 80px;
+  background: #888;
+}
+
+.minute {
+  width: 4px;
+  height: 110px;
+  background: #999;
+}
+
+.second {
+  width: 2px;
+  height: 130px;
+  background: red;
+}
+
+/* Numbers */
+.num {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+
+</style>
+
+</head>
+<body>
+
+<div class="clock" id="clock">
+
+  <!-- Hands -->
+  <div class="hand hour" id="hour"></div>
+  <div class="hand minute" id="minute"></div>
+  <div class="hand second" id="second"></div>
+  <div class="center"></div>
+
+</div>
+
+<script>
+const clock = document.getElementById("clock");
+
+/* ✅ Create Numbers (Perfect Circle) */
+for (let i = 1; i <= 12; i++) {
+  const number = document.createElement("div");
+  number.classList.add("num");
+
+  const angle = i * 30;
+
+  number.style.transform = `
+    rotate(${angle}deg)
+    translateY(-130px)
+    rotate(-${angle}deg)
+  `;
+
+  number.innerText = i;
+  clock.appendChild(number);
+}
+
+/* ✅ Create Ticks */
+for (let i = 0; i < 60; i++) {
+  const tick = document.createElement("div");
+  tick.classList.add("tick");
+
+  if (i % 5 === 0) tick.classList.add("bold");
+
+  tick.style.transform = `rotate(${i * 6}deg)`;
+  clock.appendChild(tick);
+}
+
+/* ✅ Clock Logic */
+function updateClock() {
+  const now = new Date();
+
+  const sec = now.getSeconds();
+  const min = now.getMinutes();
+  const hr = now.getHours();
+
+  const secDeg = sec * 6;
+  const minDeg = min * 6 + sec * 0.1;
+  const hrDeg = hr * 30 + min * 0.5;
+
+  document.getElementById("second").style.transform =
+    `rotate(${secDeg}deg)`;
+
+  document.getElementById("minute").style.transform =
+    `rotate(${minDeg}deg)`;
+
+  document.getElementById("hour").style.transform =
+    `rotate(${hrDeg}deg)`;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+
+</body>
+</html>
