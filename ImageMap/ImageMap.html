@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Image Map Generator</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:linear-gradient(135deg,#1e3c72,#2a5298);
+  color:white;
+  text-align:center;
+}
+
+h1{
+  margin:20px;
+}
+
+.container{
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  padding:20px;
+}
+
+/* LEFT PANEL */
+.left{
+  background:#111;
+  padding:15px;
+  border-radius:10px;
+  width:70%;
+}
+
+canvas{
+  border:2px solid #fff;
+  border-radius:10px;
+  cursor:crosshair;
+  max-width:100%;
+}
+
+/* RIGHT PANEL */
+.right{
+  background:#111;
+  padding:15px;
+  border-radius:10px;
+  width:30%;
+}
+
+button{
+  margin:5px;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.rectBtn{ background:#28a745; color:white;}
+.pointBtn{ background:#ffc107; color:black;}
+.clearBtn{ background:#dc3545; color:white;}
+.generateBtn{ background:#17a2b8; color:white;}
+
+textarea{
+  width:100%;
+  height:200px;
+  margin-top:10px;
+  border-radius:8px;
+  padding:10px;
+  resize:none;
+}
+
+input{
+  margin:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🖼️ Image Map Generator</h1>
+
+<input type="file" id="upload">
+
+<div class="container">
+
+  <div class="left">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <div class="right">
+    <h3>Tools</h3>
+
+    <button class="rectBtn" onclick="mode='rect'">Rectangle</button>
+    <button class="pointBtn" onclick="mode='point'">Point</button>
+    <button class="clearBtn" onclick="clearAll()">Clear</button>
+
+    <br>
+
+    <button class="generateBtn" onclick="generateMap()">Generate Code</button>
+
+    <textarea id="output" placeholder="Generated HTML map code..."></textarea>
+  </div>
+
+</div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const upload = document.getElementById("upload");
+
+let img = new Image();
+let mode = "rect";
+
+let shapes = [];
+let startX, startY;
+let drawing = false;
+
+// Upload image
+upload.addEventListener("change", function(e){
+  const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(event){
+    img.onload = function(){
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img,0,0);
+    }
+    img.src = event.target.result;
+  }
+
+  reader.readAsDataURL(file);
+});
+
+// Mouse Down
+canvas.addEventListener("mousedown", function(e){
+  const rect = canvas.getBoundingClientRect();
+  startX = e.clientX - rect.left;
+  startY = e.clientY - rect.top;
+  drawing = true;
+
+  if(mode === "point"){
+    shapes.push({
+      type:"circle",
+      coords:[startX, startY, 5]
+    });
+    redraw();
+  }
+});
+
+// Mouse Move
+canvas.addEventListener("mousemove", function(e){
+  if(!drawing || mode !== "rect") return;
+
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  redraw();
+
+  ctx.strokeStyle="red";
+  ctx.strokeRect(startX, startY, x-startX, y-startY);
+});
+
+// Mouse Up
+canvas.addEventListener("mouseup", function(e){
+  if(mode !== "rect") return;
+
+  const rect = canvas.getBoundingClientRect();
+  const endX = e.clientX - rect.left;
+  const endY = e.clientY - rect.top;
+
+  shapes.push({
+    type:"rect",
+    coords:[startX, startY, endX, endY]
+  });
+
+  drawing = false;
+  redraw();
+});
+
+// Redraw everything
+function redraw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(img,0,0);
+
+  shapes.forEach(s=>{
+    ctx.strokeStyle="yellow";
+
+    if(s.type==="rect"){
+      let [x1,y1,x2,y2] = s.coords;
+      ctx.strokeRect(x1,y1,x2-x1,y2-y1);
+    }
+
+    if(s.type==="circle"){
+      let [x,y,r] = s.coords;
+      ctx.beginPath();
+      ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.stroke();
+    }
+  });
+}
+
+// Clear all
+function clearAll(){
+  shapes = [];
+  redraw();
+}
+
+// Generate HTML MAP
+function generateMap(){
+  let code = '<img src="your-image.png" usemap="#map1">\n<map name="map1">\n';
+
+  shapes.forEach(s=>{
+    if(s.type==="rect"){
+      code += `<area shape="rect" coords="${s.coords.join(',')}" href="#" />\n`;
+    }
+
+    if(s.type==="circle"){
+      code += `<area shape="circle" coords="${s.coords.join(',')}" href="#" />\n`;
+    }
+  });
+
+  code += '</map>';
+
+  document.getElementById("output").value = code;
+}
+</script>
+
+</body>
+</html>
